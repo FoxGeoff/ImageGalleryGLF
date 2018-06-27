@@ -39,7 +39,7 @@ namespace ImageGallery.API
 
             services.AddTransient<ImageSeeder>();
 
-            //TODO: services.AddScoped<IGalleryRepository, GalleryRepository>();
+            services.AddScoped<IGalleryRepository, GalleryRepository>();
 
             services.AddMvc();
         }

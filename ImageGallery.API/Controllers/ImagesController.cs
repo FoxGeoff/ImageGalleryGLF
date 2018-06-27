@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ImageGallery.API.Entities;
 using ImageGallery.API.Entitiies;
+using ImageGallery.API.Services;
+using Microsoft.AspNetCore.Hosting;
 
 namespace ImageGallery.API.Controllers
 {
@@ -14,20 +16,30 @@ namespace ImageGallery.API.Controllers
     [Route("api/Images")]
     public class ImagesController : Controller
     {
-        private readonly GalleryContext _context;
+        private readonly IGalleryRepository _repo;
+        private readonly IHostingEnvironment _env;
 
-        public ImagesController(GalleryContext context)
+        public ImagesController(IGalleryRepository repo,
+            IHostingEnvironment env)
         {
-            _context = context;
+            _repo = repo;
+            _env = env;
         }
 
-        // GET: api/Images
         [HttpGet]
-        public IEnumerable<Image> GetImages()
+        public IActionResult GetImages()
         {
-            return _context.Images;
+            // get from repo
+            var imagesFromRepo = _repo.GetImages();
+
+            // map to model
+            //TODO: var imagesToReturn = Mapper.Map<IEnumerable<Model.Image>>(imagesFromRepo);
+
+            // return
+            return Ok(imagesFromRepo);
         }
 
+        /*
         // GET: api/Images/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetImage([FromRoute] Guid id)
@@ -122,5 +134,6 @@ namespace ImageGallery.API.Controllers
         {
             return _context.Images.Any(e => e.Id == id);
         }
+        */
     }
 }

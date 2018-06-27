@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageGallery.API", "ImageGa
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7F5B2901-F22B-464D-9057-B43EFEE42AC3}"
 	ProjectSection(SolutionItems) = preProject
-		ReadME.txt = ReadME.txt
+		ReadMe.txt = ReadMe.txt
 	EndProjectSection
 EndProject
 Global
