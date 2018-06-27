@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ImageGallery.API.Entitiies;
+using ImageGallery.API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,7 @@ namespace ImageGallery.API
 
             //TODO: services.AddTransient<IMailService, NullMailService>();
 
-            //TODO: services.AddTransient<ImageSeeder>();
+            services.AddTransient<ImageSeeder>();
 
             //TODO: services.AddScoped<IGalleryRepository, GalleryRepository>();
 
@@ -50,8 +51,23 @@ namespace ImageGallery.API
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                //TODO: Error page
+                app.UseExceptionHandler("/Error");
+            }
 
             app.UseMvc();
+
+            if (env.IsDevelopment())
+            {
+                // Seed the database
+                using (var scope = app.ApplicationServices.CreateScope())
+                {
+                    var seeder = scope.ServiceProvider.GetService<ImageSeeder>();
+                    seeder.Seed();
+                }
+            }
         }
     }
 }
