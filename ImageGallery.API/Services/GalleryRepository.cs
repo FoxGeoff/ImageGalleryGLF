@@ -1,5 +1,6 @@
 ﻿using ImageGallery.API.Entities;
 using ImageGallery.API.Entitiies;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,11 @@ namespace ImageGallery.API.Services
         public bool ImageExists(Guid id)
         {
             return _ctx.Images.Any(i => i.Id == id);
+        }
+
+        public async Task<Image> GetImageAsync(Guid id)
+        {
+            return await _ctx.Images.FirstOrDefaultAsync(i => i.Id == id);
         }
 
         public Image GetImage(Guid id)

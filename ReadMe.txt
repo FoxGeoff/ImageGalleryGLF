@@ -6,3 +6,6 @@
 ## add third project ImageGallery.Client					3hours
 
 Fixed image display by renaminf image folder to "img" from "images".
+
+TODO: Add Image
+TODO: Edit Image

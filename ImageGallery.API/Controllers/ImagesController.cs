@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
 using ImageGallery.API.Entities;
-using ImageGallery.API.Entitiies;
+using ImageGallery.API.Helpers;
 using ImageGallery.API.Services;
+using ImageGallery.Model;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+
+//TODO: update using async
 
 namespace ImageGallery.API.Controllers
 {
@@ -27,21 +29,21 @@ namespace ImageGallery.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetImages()
+        public IEnumerable<Model.Image> GetImages()
         {
             // get from repo
             var imagesFromRepo = _repo.GetImages();
 
             // map to model
-            //TODO: var imagesToReturn = Mapper.Map<IEnumerable<Model.Image>>(imagesFromRepo);
+            var imagesToReturn = Mapper.Map<IEnumerable<Model.Image>>(imagesFromRepo);
 
             // return
-            return Ok(imagesFromRepo);
+            return imagesToReturn;
         }
 
-        /*
+        
         // GET: api/Images/5
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetImage")]
         public async Task<IActionResult> GetImage([FromRoute] Guid id)
         {
             if (!ModelState.IsValid)
@@ -49,91 +51,126 @@ namespace ImageGallery.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var image = await _context.Images.SingleOrDefaultAsync(m => m.Id == id);
+            var imageFromRepo = await _repo.GetImageAsync(id);
 
-            if (image == null)
+            if (imageFromRepo == null)
             {
                 return NotFound();
             }
 
-            return Ok(image);
+            var imageToReturn = Mapper.Map<Model.Image>(imageFromRepo);
+
+            return Ok(imageToReturn);
         }
-
-        // PUT: api/Images/5
+        
+        // PUT: api/Images/5 (UpdateImage)
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutImage([FromRoute] Guid id, [FromBody] Image image)
+        public async Task<IActionResult> PutImage([FromRoute] Guid id, [FromBody] ImageForUpdate imageForUpdate)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id != image.Id)
+            if (imageForUpdate == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(image).State = EntityState.Modified;
-
-            try
+            if (!ModelState.IsValid)
             {
-                await _context.SaveChangesAsync();
+                // return 422 - Unprocessable Entity when validation fails
+                return new UnprocessableEntityObjectResult(ModelState);
             }
-            catch (DbUpdateConcurrencyException)
+
+            var imageFromRepo = _repo.GetImageAsync(id);
+            if (imageFromRepo == null)
             {
-                if (!ImageExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
+            }
+
+            await Mapper.Map(imageForUpdate, imageFromRepo);
+
+            _repo.UpdateImage(imageFromRepo.Result);
+
+            if (!_repo.Save())
+            {
+                throw new Exception($"Updating image with {id} failed on save.");
+            }
+
+            return NoContent();
+        }
+        
+
+        // POST: api/Images (CreateImage)
+        [HttpPost]
+        public IActionResult PostImage([FromBody] ImageForCreation imageForCreation)
+        {
+            if (imageForCreation == null)
+            {
+                return BadRequest();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // return 422 - Unprocessable Entity when validation fails
+                return new UnprocessableEntityObjectResult(ModelState);
+            }
+
+            // Automapper maps only the Title in our configuration
+            var imageEntity = Mapper.Map<Entities.Image>(imageForCreation);
+
+            // Create an image from the passed-in bytes (Base64), and 
+            // set the filename on the image
+
+            // get this environment's web root path (the path
+            // from which static content, like an image, is served)
+            var webRootPath = _env.WebRootPath;
+
+            // create the filename
+            string fileName = Guid.NewGuid().ToString() + ".jpg";
+
+            // the full file path
+            var filePath = Path.Combine($"{webRootPath}/images/{fileName}");
+
+            // write bytes and auto-close stream
+            System.IO.File.WriteAllBytes(filePath, imageForCreation.Bytes);
+
+            // fill out the filename
+            imageEntity.FileName = fileName;
+
+            _repo.AddImage(imageEntity);
+
+            if (!_repo.Save())
+            {
+                throw new Exception($"Adding an image failed on save.");
+            }
+
+            var imageToReturn = Mapper.Map<Model.Image>(imageEntity);
+
+            return CreatedAtRoute("GetImage", new { id = imageToReturn.Id }, imageToReturn);
+        }
+
+        // DELETE: api/Images/5
+        [HttpDelete("{id}")]
+        public IActionResult DeleteImage([FromRoute] Guid id)
+        {
+            var imageFromRepo = _repo.GetImage(id);
+
+            if (imageFromRepo == null)
+            {
+                return NotFound();
+            }
+
+            _repo.DeleteImage(imageFromRepo);
+
+            if (!_repo.Save())
+            {
+                throw new Exception($"Deleting image with {id} failed on save.");
             }
 
             return NoContent();
         }
 
-        // POST: api/Images
-        [HttpPost]
-        public async Task<IActionResult> PostImage([FromBody] Image image)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _context.Images.Add(image);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetImage", new { id = image.Id }, image);
-        }
-
-        // DELETE: api/Images/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteImage([FromRoute] Guid id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var image = await _context.Images.SingleOrDefaultAsync(m => m.Id == id);
-            if (image == null)
-            {
-                return NotFound();
-            }
-
-            _context.Images.Remove(image);
-            await _context.SaveChangesAsync();
-
-            return Ok(image);
-        }
-
         private bool ImageExists(Guid id)
         {
-            return _context.Images.Any(e => e.Id == id);
+            return _repo.ImageExists(id);
         }
-        */
+        
     }
 }
