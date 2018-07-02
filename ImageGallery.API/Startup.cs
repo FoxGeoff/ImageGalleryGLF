@@ -83,7 +83,7 @@ namespace ImageGallery.API
             AutoMapper.Mapper.AssertConfigurationIsValid();
             //===
 
-            //Not requiered => app.UseStaticFiles();
+            app.UseStaticFiles();
 
             app.UseMvc();
 
