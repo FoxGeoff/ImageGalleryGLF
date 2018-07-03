@@ -7,5 +7,5 @@
 
 Fixed image display by renaminf image folder to "img" from "images".
 
-TODO: Add Image
-TODO: Edit Image
+TODO: Add Image Action
+TODO: Edit Image Action
