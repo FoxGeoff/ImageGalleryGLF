@@ -18,6 +18,7 @@ namespace Mavreak.IDP
             //Generates a crendetial used to sign the tokens.
             //Replaces a signing certificate.
             //In production use a real certificate.
+            services.AddMvc();
 
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
@@ -35,11 +36,13 @@ namespace Mavreak.IDP
             }
 
             app.UseIdentityServer();
+            app.UseStaticFiles();
+            app.UseMvcWithDefaultRoute();
 
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Hello World!");
-            });
+            //app.Run(async (context) =>
+            //{
+            //    await context.Response.WriteAsync("Hello World!");
+            //});
         }
     }
 }
