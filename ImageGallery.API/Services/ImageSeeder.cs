@@ -21,6 +21,10 @@ namespace ImageGallery.API.Services
 
         public void Seed()
         {
+            /*
+             * EnsureCreated() bypasses migrations. Only use in dev if you can destroy and create the database
+             * https://stackoverflow.com/questions/38238043/how-and-where-to-call-database-ensurecreated-and-database-migrate
+             */
             _ctx.Database.EnsureCreated();
 
             if (!_ctx.Images.Any())
