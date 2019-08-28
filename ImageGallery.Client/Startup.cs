@@ -37,7 +37,19 @@ namespace ImageGallery.Client
             {
                 options.DefaultAuthenticateScheme = "Cookies";
                 options.DefaultChallengeScheme = "oidc";
-            }).AddCookie("Cookies");
+            }).AddCookie("Cookies")
+            .AddOpenIdConnect("oidc", options =>
+            {
+                options.SignInScheme = "Cookies";
+                options.Authority = "https://localhost:44326";
+                options.ClientId = "imagegalleryclient";
+                options.ResponseType = "code id_token";
+                //options.CallbackPath = new PathString("...")
+                options.Scope.Add("openid");
+                options.Scope.Add("profile");
+                options.SaveTokens = true;
+                options.ClientSecret = "secret";
+            });
             
         }
 
