@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -7,12 +8,16 @@ using System.Threading.Tasks;
 using ImageGallery.Client.Models;
 using ImageGallery.Client.Services;
 using ImageGallery.Model;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json;
 
 namespace ImageGallery.Client.Controllers
 {
+    [Authorize]
     public class GalleryController : Controller
     {
         private readonly IImageGalleryHttpClient _imageGalleryHttpClient;
@@ -24,6 +29,9 @@ namespace ImageGallery.Client.Controllers
 
         public async Task<IActionResult> Index()
         {
+            //debug
+            await WriteOutIdentyInfomation();
+
             //call the API
             var httpClient = await _imageGalleryHttpClient.GetClient();
             var response = await httpClient.GetAsync("api/images").ConfigureAwait(false);
@@ -40,6 +48,27 @@ namespace ImageGallery.Client.Controllers
 
             throw new Exception($"A problem happened while calling the API: {response.ReasonPhrase}");
         }
+
+        // Remove in production - debug only
+        public async Task WriteOutIdentyInfomation()
+        {
+            //get the saved identity token
+            var identityToken = await HttpContext
+                .GetTokenAsync(OpenIdConnectParameterNames.IdToken);
+
+            //write it out
+            Debug.WriteLine($"Identity token: {identityToken}");
+
+            //write ot user claim class
+            foreach (var claim in User.Claims)
+            {
+                Debug.WriteLine($"Claim type: {claim.Type} - Claim value: {claim.Value}");
+            }
+
+        }
+        // End remove
+
+
 
         public async Task<IActionResult> EditImage(Guid id)
         {
