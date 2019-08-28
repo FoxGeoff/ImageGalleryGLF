@@ -69,6 +69,8 @@ namespace ImageGallery.Client
                 app.UseExceptionHandler("/Home/Error");
             }
 
+            app.UseAuthentication();
+
             app.UseStaticFiles();
 
             app.UseMvc(routes =>
