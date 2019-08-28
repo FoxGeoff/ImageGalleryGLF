@@ -32,6 +32,13 @@ namespace ImageGallery.Client
 
             // register an IImageGalleryHttpClient
             services.AddScoped<IImageGalleryHttpClient, ImageGalleryHttpClient>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "Cookies";
+                options.DefaultChallengeScheme = "oidc";
+            }).AddCookie("Cookies");
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
