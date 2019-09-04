@@ -30,7 +30,7 @@ namespace ImageGallery.Client.Controllers
         public async Task<IActionResult> Index()
         {
             //debug
-            await WriteOutIdentyInfomation();
+            await WriteOutIdentityInformation();
 
             //call the API
             var httpClient = await _imageGalleryHttpClient.GetClient();
@@ -50,21 +50,20 @@ namespace ImageGallery.Client.Controllers
         }
 
         // Remove in production - debug only
-        public async Task WriteOutIdentyInfomation()
+        public async Task WriteOutIdentityInformation()
         {
-            //get the saved identity token
+            // get the saved identity token
             var identityToken = await HttpContext
                 .GetTokenAsync(OpenIdConnectParameterNames.IdToken);
 
-            //write it out
+            // write it out
             Debug.WriteLine($"Identity token: {identityToken}");
 
-            //write ot user claim class
+            // write out the user claims
             foreach (var claim in User.Claims)
             {
                 Debug.WriteLine($"Claim type: {claim.Type} - Claim value: {claim.Value}");
             }
-
         }
         // End remove
 

@@ -63,13 +63,15 @@ namespace Mavreak.IDP
                 {
                     ClientName = "Image Gallery",
                     ClientId = "imagegalleryclient",
+                    AllowedGrantTypes = GrantTypes.Hybrid,
                     RedirectUris = new List<string>()
                     {
-                        "https:localhost:44364/signin-oidc"
+                        "https://localhost:44364/signin-oidc" 
                     },
                     AllowedScopes =
                     {
-                        IdentityServerConstants.StandardScopes.OpenId
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile
                     },
                     ClientSecrets =
                     {
